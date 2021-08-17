@@ -107,7 +107,9 @@
     <Import Include="System.Web.UI.HtmlControls" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include=".gitignore" />
     <Content Include="index.html" />
+    <Content Include="index.css" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
@@ -160,11 +162,15 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="app.ts" />
-    <TypeScriptCompile Include="engine.ts" />
-    <TypeScriptCompile Include="gl.ts" />
+    <TypeScriptCompile Include="core\engine.ts" />
+    <TypeScriptCompile Include="core\gl\gl.ts" />
+    <TypeScriptCompile Include="core\gl\shader.ts" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="core\graphics\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

@@ -1,6 +1,11 @@
-﻿// main entry point of the app
+﻿var engine: TSE.Engine
+
+// main entry point of the app
 window.onload = function () {
-    let engine = new TSE.Engine();
+    engine = new TSE.Engine()
     engine.start()
-    // document.body.innerHTML += 'foo'
+}
+
+window.onresize = function () {
+    engine.resize()
 }
