@@ -9,6 +9,86 @@ window.onresize = function () {
 };
 var TSE;
 (function (TSE) {
+    /**
+     * game engine class
+     */
+    var Engine = /** @class */ (function () {
+        function Engine() {
+            console.log("Hello World");
+        }
+        // private _count: number = 0
+        Engine.prototype.start = function () {
+            this._canvas = TSE.GLUtilities.initialise();
+            // colour (red)
+            TSE.gl.clearColor(1, 0, 0, 1);
+            this.loadShaders();
+            this._shader.use();
+            this.createBuffer();
+            this.resize();
+            this.loop();
+        };
+        /**
+         * @description: resizes the canvas to fit the window
+         * @param {*}
+         * @return {*}
+         */
+        Engine.prototype.resize = function () {
+            if (this._canvas) {
+                this._canvas.width = window.innerWidth;
+                this._canvas.height = window.innerHeight;
+            }
+        };
+        /**
+         * main loop
+         */
+        Engine.prototype.loop = function () {
+            TSE.gl.clear(TSE.gl.COLOR_BUFFER_BIT);
+            TSE.gl.bindBuffer(TSE.gl.ARRAY_BUFFER, this._buffer);
+            TSE.gl.vertexAttribPointer(0, 3, TSE.gl.FLOAT, false, 0, 0);
+            TSE.gl.enableVertexAttribArray(0);
+            TSE.gl.drawArrays(TSE.gl.TRIANGLES, 0, 3);
+            TSE.gl.drawArrays(TSE.gl.TRIANGLES, 0, 3);
+            requestAnimationFrame(this.loop.bind(this));
+        };
+        // shader thingy
+        Engine.prototype.loadShaders = function () {
+            // glml
+            var vertexShaderSource = "\n                attribute vec3 a_position;\n                void main() {\n                    gl_Position = vec4(a_position, 1.0);\n                }\n            ";
+            /* what is precision mediump float? => https://stackoverflow.com/questions/13780609/what-does-precision-mediump-float-mean
+             * This determines how much precision the GPU uses when calculating floats. levels (some devices does not support highp):
+             * - `highp` for vertex positions,
+             * - `mediump` for texture coordinates,
+             * - `lowp` for colors.
+            */
+            var fragmentShaderSource = "\n                precision mediump float;\n\n                void main() {\n                    layout(location = 0) out vec4 diffuseColor;\n                }\n            ";
+            this._shader = new TSE.Shader("basic", vertexShaderSource, fragmentShaderSource);
+        };
+        // buffer is a container of data which will be pushed to te graphics card, for vertex shader
+        Engine.prototype.createBuffer = function () {
+            this._buffer = TSE.gl.createBuffer();
+            var vertices = [
+                // x
+                0, 0, 0,
+                // y
+                0, 0.5, 0,
+                // z
+                0.5, 0.5, 0
+            ];
+            TSE.gl.bindBuffer(TSE.gl.ARRAY_BUFFER, this._buffer);
+            TSE.gl.vertexAttribPointer(0, 3, TSE.gl.FLOAT, false, 0, 0);
+            TSE.gl.enableVertexAttribArray(0);
+            // float32array was devised especially for webgl.
+            // an object that takes in a bunch of numbers and converts them to 32 - bits float numbers.
+            TSE.gl.bufferData(TSE.gl.ARRAY_BUFFER, new Float32Array(vertices), TSE.gl.STATIC_DRAW);
+            TSE.gl.bindBuffer(TSE.gl.ARRAY_BUFFER, undefined);
+            TSE.gl.disableVertexAttribArray(0);
+        };
+        return Engine;
+    }());
+    TSE.Engine = Engine;
+})(TSE || (TSE = {}));
+var TSE;
+(function (TSE) {
     var GLUtilities = /** @class */ (function () {
         function GLUtilities() {
         }
@@ -46,58 +126,6 @@ var TSE;
 })(TSE || (TSE = {}));
 var TSE;
 (function (TSE) {
-    /**
-     * game engine class
-     */
-    var Engine = /** @class */ (function () {
-        function Engine() {
-            console.log("Hello World");
-        }
-        // private _count: number = 0
-        Engine.prototype.start = function () {
-            this._canvas = TSE.GLUtilities.initialise();
-            // colour (red)
-            TSE.gl.clearColor(1, 0, 0, 1);
-            // game looping
-            this.loop();
-        };
-        /**
-         * @description: resizes the canvas to fit the window
-         * @param {*}
-         * @return {*}
-         */
-        Engine.prototype.resize = function () {
-            if (this._canvas) {
-                this._canvas.width = window.innerWidth;
-                this._canvas.height = window.innerHeight;
-            }
-        };
-        /**
-         * main loop
-         */
-        Engine.prototype.loop = function () {
-            TSE.gl.clear(TSE.gl.COLOR_BUFFER_BIT);
-            requestAnimationFrame(this.loop.bind(this));
-        };
-        // shader thingy
-        Engine.prototype.loadShaders = function () {
-            // glml
-            var vertexShaderSource = "\n                attribute vec3 a_position;\n                void main() {\n                    gl_Position = vec4(a_position, 1.0);\n                }\n            ";
-            /* what is precision mediump float? => https://stackoverflow.com/questions/13780609/what-does-precision-mediump-float-mean
-             * This determines how much precision the GPU uses when calculating floats. levels:
-             * - `highp` for vertex positions,
-             * - `mediump` for texture coordinates,
-             * - `lowp` for colors.
-            */
-            var fragmentShaderSource = "\n                precision mediump float;\n\n                void main() {\n                    layout(location = 0) out vec4 diffuseColor;\n                }\n            ";
-            this._shader = new TSE.Shader("basic", vertexShaderSource, fragmentShaderSource);
-        };
-        return Engine;
-    }());
-    TSE.Engine = Engine;
-})(TSE || (TSE = {}));
-var TSE;
-(function (TSE) {
     var Shader = /** @class */ (function () {
         /**
          * @description: creates a shader
@@ -112,7 +140,7 @@ var TSE;
          * @return {*}
         */
         function Shader(name, vertexSource, fragmentSource) {
-            // there appears to be a problem with this...
+            // there appears to be a problem with this... one that i am not capable of fixing.
             this._name = name;
             var vertexShader = this.loadShader(vertexSource, TSE.gl.VERTEX_SHADER);
             var fragmentShader = this.loadShader(fragmentSource, TSE.gl.FRAGMENT_SHADER);
@@ -125,6 +153,33 @@ var TSE;
             enumerable: false,
             configurable: true
         });
+        Shader.prototype.use = function () {
+            TSE.gl.useProgram(this._program);
+        };
+        /**
+         * Creates and compiles a shader.
+         *
+         * @param {!WebGLRenderingContext} gl The WebGL Context.
+         * @param {string} shaderSource The GLSL source code for the shader.
+         * @param {number} shaderType The type of shader, VERTEX_SHADER or
+         *     FRAGMENT_SHADER.
+         * @return {!WebGLShader} The shader.
+         */
+        Shader.prototype.compileShader = function (gl, shaderSource, shaderType) {
+            // Create the shader object
+            var shader = gl.createShader(shaderType);
+            // Set the shader source code.
+            gl.shaderSource(shader, shaderSource);
+            // Compile the shader
+            gl.compileShader(shader);
+            // Check if it compiled
+            var success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+            if (!success) {
+                // Something went wrong during compilation; get the error
+                throw ("could not compile shader:" + gl.getShaderInfoLog(shader));
+            }
+            return shader;
+        };
         // private loadShader(gl: WebGLRenderingContext, shaderType: number, shaderSource: string): WebGLShader {
         Shader.prototype.loadShader = function (shaderType, shaderSource) {
             var shader = TSE.gl.createShader(shaderType);
@@ -145,7 +200,7 @@ var TSE;
             TSE.gl.attachShader(this._program, fragmentShader);
             TSE.gl.linkProgram(this._program);
             var error = TSE.gl.getShaderInfoLog(this._program);
-            if (error !== undefined) {
+            if (error !== '') {
                 throw new Error('cannot compile shader:' + error);
             }
         };
